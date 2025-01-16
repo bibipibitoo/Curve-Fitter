@@ -12,8 +12,8 @@ I_sc: Short-circuit curent (mA)
 I_o: Reverse bias saturation current (mA)  
 n: Ideality factor  
 T: Temperature (K)  
-R_s: Series resistance ($\omega$)  
-R_sh: Shunt resistance ($\omega$)  
+R_s: Series resistance ($\Omega$)  
+R_sh: Shunt resistance ($\Omega$)  
 
 After uploading data, click on "Plot Theoretical Curve" to plot the initial curve, and adjusting any parameters thereafter will automatically update the plot. To switch to a log plot, click "Plot Log(Current)", and adjusting any parameters thereafter will automatically update the plot while still in the log view. Click on "Plot Theoretical Curve" to exit out of log view. 
 
