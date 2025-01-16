@@ -8,12 +8,12 @@ You can upload your current - voltage data and adjust the following parameters a
 
 $$ I = I_{sc} - I_{o}(e^{q(V+IR_s)/nkT} - 1) - \frac{V + IR_s}{R_sh} $$
 
-I_sc: Short-circuit curent (mA) \n
-I_o: Reverse bias saturation current (mA) \n
-n: Ideality factor \n
-T: Temperature (K) \n
-R_s: Series resistance ($\omega$) \n
-R_sh: Shunt resistance ($\omega$) \n
+I_sc: Short-circuit curent (mA)  
+I_o: Reverse bias saturation current (mA)  
+n: Ideality factor  
+T: Temperature (K)  
+R_s: Series resistance ($\omega$)  
+R_sh: Shunt resistance ($\omega$)  
 
 After uploading data, click on "Plot Theoretical Curve" to plot the initial curve, and adjusting any parameters thereafter will automatically update the plot. To switch to a log plot, click "Plot Log(Current)", and adjusting any parameters thereafter will automatically update the plot while still in the log view. Click on "Plot Theoretical Curve" to exit out of log view. 
 
