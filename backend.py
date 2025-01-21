@@ -33,7 +33,19 @@ class Backend:
     def solve_shockley(self, V_values, I_sc, I_o, n, T, R_s, R_sh):
         """
         Solve the Shockley equation for a range of voltages.
-        
+
+        Args:
+            V_values (np.ndarray): Array of voltage values.
+            I_sc (float): Short-circuit current.
+            I_o (float): Reverse saturation current.
+            n (float): Ideality factor.
+            T (float): Temperature in Kelvin.
+            R_s (float): Series resistance.
+            R_sh (float): Shunt resistance.
+
+        Returns:
+            np.ndarray: Array of current values corresponding to the input voltages.
+        """
         # Initialize array for current values
         I_values = np.zeros_like(V_values)
 
