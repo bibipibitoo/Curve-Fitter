@@ -57,12 +57,12 @@ class SliderWindow(QWidget):
         self.labels = {}
         self.input_boxes = {}
         self.parameters = {
-            'I_sc': (0, 2000, 1000, 1000),  # (min, max, default, scaling factor)
-            'I_o': (0, 100, 10, 1000),      # (min, max, default, scaling factor)
-            'n': (1000, 5000, 3000, 1000),  # (min, max, default, scaling factor)
-            'T': (200, 400, 300, 1),        # (min, max, default, scaling factor)
-            'R_s': (0, 10000, 10, 1000),    # (min, max, default, scaling factor)
-            'R_sh': (0, 10000, 100, 1000)    # (min, max, default, scaling factor)
+            'I_sc': (0, 2000, 1000, 1000, "mA"),  # (min, max, default, scaling factor, unit)
+            'I_o': (0, 100, 10, 1000, "mA"),      # (min, max, default, scaling factor, unit)
+            'n': (1000, 5000, 3000, 1000, ""),    # (min, max, default, scaling factor, unit)
+            'T': (200, 400, 300, 1, "K"),         # (min, max, default, scaling factor, unit)
+            'R_s': (1, 10000, 10, 1000, "Ω"),     # (min, max, default, scaling factor, unit)
+            'R_sh': (0, 10000, 100, 1000, "Ω")    # (min, max, default, scaling factor, unit)
         }
         self.debounce_timer = QTimer()  # For debouncing parameter updates
         self.solver_thread = None  # For background computation
@@ -80,22 +80,21 @@ class SliderWindow(QWidget):
         left_layout = QVBoxLayout()
 
         # Create parameter controls
-        for param, (min_val, max_val, default_val, scaling) in self.parameters.items():
-            left_layout.addLayout(self.create_parameter_controls(param, min_val, max_val, default_val, scaling))
+        for param, (min_val, max_val, default_val, scaling, unit) in self.parameters.items():
+            left_layout.addLayout(self.create_parameter_controls(param, min_val, max_val, default_val, scaling, unit))
 
         # Add upload button
         self.upload_button = QPushButton('Upload Data File')
         self.upload_button.clicked.connect(self.uploadFile)
         left_layout.addWidget(self.upload_button)
 
-        # Add plot button
-        self.plot_button = QPushButton('Plot Theoretical Curve')
-        self.plot_button.clicked.connect(lambda: self.plotData(log_mode=False))
-        left_layout.addWidget(self.plot_button)
+        # Add Linear and Log buttons
+        self.linear_button = QPushButton('Linear')
+        self.linear_button.clicked.connect(lambda: self.setPlotMode("normal"))
+        left_layout.addWidget(self.linear_button)
 
-        # Add log transformation button
-        self.log_button = QPushButton('Plot Log(Current)')
-        self.log_button.clicked.connect(lambda: self.plotData(log_mode=True))
+        self.log_button = QPushButton('Log')
+        self.log_button.clicked.connect(lambda: self.setPlotMode("log"))
         left_layout.addWidget(self.log_button)
 
         # Add R^2 label
@@ -125,12 +124,13 @@ class SliderWindow(QWidget):
 
         self.show()
 
-    def create_parameter_controls(self, param, min_val, max_val, default_val, scaling):
+    def create_parameter_controls(self, param, min_val, max_val, default_val, scaling, unit):
         """Create sliders, labels, and input boxes for a parameter."""
         param_layout = QHBoxLayout()
 
         # Add label
         label = QLabel(f'{param}:')
+        label.setFixedWidth(50)  # Fixed width for the label to align vertically
         param_layout.addWidget(label)
         self.labels[param] = label
 
@@ -147,11 +147,16 @@ class SliderWindow(QWidget):
         # Add input box
         input_box = QLineEdit()
         input_box.setText(str(default_val / scaling))
-        input_box.setFixedWidth(100)
+        input_box.setFixedWidth(100)  # Fixed width for the input box
         input_box.returnPressed.connect(lambda p=param: self.updateSliderFromInput(p))
         input_box.returnPressed.connect(self.startDebounceTimer)
         param_layout.addWidget(input_box)
         self.input_boxes[param] = input_box
+
+        # Add unit label
+        unit_label = QLabel(unit)
+        unit_label.setFixedWidth(30)  # Fixed width for the unit label
+        param_layout.addWidget(unit_label)
 
         return param_layout
 
@@ -288,3 +293,8 @@ class SliderWindow(QWidget):
 
         # Refresh the canvas
         self.canvas.draw()
+
+    def setPlotMode(self, mode):
+        """Set the plot mode to either 'normal' or 'log'."""
+        self.plot_mode = mode
+        self.plotData(log_mode=(mode == "log"))
