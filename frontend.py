@@ -61,7 +61,7 @@ class SliderWindow(QWidget):
             'I_o': (0, 100, 10, 1000, "mA"),      # (min, max, default, scaling factor, unit)
             'n': (1000, 5000, 3000, 1000, ""),    # (min, max, default, scaling factor, unit)
             'T': (200, 400, 300, 1, "K"),         # (min, max, default, scaling factor, unit)
-            'R_s': (1, 10000, 10, 1000, "Ω"),     # (min, max, default, scaling factor, unit)
+            'R_s': (0, 10000, 10, 1000, "Ω"),     # (min, max, default, scaling factor, unit)
             'R_sh': (0, 10000, 100, 1000, "Ω")    # (min, max, default, scaling factor, unit)
         }
         self.debounce_timer = QTimer()  # For debouncing parameter updates
@@ -107,6 +107,17 @@ class SliderWindow(QWidget):
         # Right side: plot
         self.figure = Figure()
         self.canvas = FigureCanvas(self.figure)
+
+        # Enable interactive features
+        self.canvas.setFocusPolicy(Qt.ClickFocus)  # Allow the canvas to receive focus
+        self.canvas.setFocus()  # Set focus to the canvas
+        self.canvas.mpl_connect("scroll_event", self.on_scroll)  # Connect scroll event
+        self.canvas.mpl_connect("button_press_event", self.on_press)  # Connect mouse press event
+        self.canvas.mpl_connect("button_release_event", self.on_release)  # Connect mouse release event
+        self.canvas.mpl_connect("motion_notify_event", self.on_motion)  # Connect mouse motion event
+
+        self.pan_start = None  # Store the starting point for panning
+
         right_layout = QVBoxLayout()
         right_layout.addWidget(self.canvas)
 
@@ -298,3 +309,59 @@ class SliderWindow(QWidget):
         """Set the plot mode to either 'normal' or 'log'."""
         self.plot_mode = mode
         self.plotData(log_mode=(mode == "log"))
+
+    def on_scroll(self, event):
+        """Handle scroll events for zooming."""
+        ax = self.figure.gca()
+        cur_xlim = ax.get_xlim()
+        cur_ylim = ax.get_ylim()
+
+        # Get the current cursor position
+        xdata = event.xdata
+        ydata = event.ydata
+
+        if xdata is None or ydata is None:
+            return  # Ignore if the cursor is outside the plot
+
+        # Zoom factor (reversed logic)
+        scale_factor = 0.9 if event.button == "up" else 1.1  # Switched directions
+
+        # Apply zoom
+        new_xlim = [
+            xdata - (xdata - cur_xlim[0]) * scale_factor,
+            xdata + (cur_xlim[1] - xdata) * scale_factor,
+        ]
+        new_ylim = [
+            ydata - (ydata - cur_ylim[0]) * scale_factor,
+            ydata + (cur_ylim[1] - ydata) * scale_factor,
+        ]
+
+        ax.set_xlim(new_xlim)
+        ax.set_ylim(new_ylim)
+        self.canvas.draw()
+
+    def on_press(self, event):
+        """Handle mouse press events for panning."""
+        if event.button == 1:  # Left mouse button
+            self.pan_start = (event.xdata, event.ydata)
+
+    def on_release(self, event):
+        """Handle mouse release events for panning."""
+        if event.button == 1:  # Left mouse button
+            self.pan_start = None
+
+    def on_motion(self, event):
+        """Handle mouse motion events for panning."""
+        if self.pan_start is None:
+            return
+
+        ax = self.figure.gca()
+        cur_xlim = ax.get_xlim()
+        cur_ylim = ax.get_ylim()
+
+        dx = event.xdata - self.pan_start[0]
+        dy = event.ydata - self.pan_start[1]
+
+        ax.set_xlim(cur_xlim[0] - dx, cur_xlim[1] - dx)
+        ax.set_ylim(cur_ylim[0] - dy, cur_ylim[1] - dy)
+        self.canvas.draw()
